@@ -99,6 +99,9 @@ public class LineGenerator : MonoBehaviour
                 float minGradient = Mathf.Infinity;
                 float maxGradient = Mathf.NegativeInfinity;
                 int infGrads = 0;
+                int horCount = 0;
+                int diagCount = 0;
+                int vertCount = 0;
                 for (int j = 1; j < positions.Length - 1; j++)
                 {
                     float gradient = (positions[j].y - positions[j - 1].y) / (positions[j].x - positions[j - 1].x);
@@ -106,14 +109,19 @@ public class LineGenerator : MonoBehaviour
                     if (gradient > maxGradient) maxGradient = gradient;
                     if (gradient == Mathf.Infinity || gradient == Mathf.NegativeInfinity) infGrads++;
                     else avgGradient += gradient;
+
+                    if (gradient <= 0.3f && gradient >= -0.3f) horCount++;
+                    else if (gradient >= 3.0f || gradient <= -3.0f) vertCount++;
+                    else diagCount++;
                 }
+                Debug.Log(horCount + " " + diagCount + " " + vertCount);
                 if (infGrads >= (positions.Length - 2) / 3) avgGradient += 1000000;
                 avgGradient /= positions.Length - 2;
                 if (minGradient == Mathf.Infinity || minGradient == Mathf.NegativeInfinity) minGradient = -10 * infGrads;
                 if (maxGradient == Mathf.Infinity || maxGradient == Mathf.NegativeInfinity) maxGradient = 10 * infGrads;
-                if (avgGradient <= 0.3f && avgGradient >= -0.3f) AddNewLineInfo(positions, LineTypes.HorizontalLine, 
+                if (horCount > diagCount && horCount > vertCount) AddNewLineInfo(positions, LineTypes.HorizontalLine, 
                     100 - (int)(10 * Mathf.Abs(minGradient)) - (int)(10 * Mathf.Abs(maxGradient)), i, lineTypes, lineLookup);
-                else if (avgGradient >= 4.0f || avgGradient <= -4.0f) AddNewLineInfo(positions, LineTypes.VerticalLine, 
+                else if (vertCount > horCount && vertCount > diagCount) AddNewLineInfo(positions, LineTypes.VerticalLine, 
                     100 - (int)Mathf.Max(0, 15 - Mathf.Abs(minGradient)) - (int)Mathf.Max(0, 15 - Mathf.Abs(maxGradient)), i, lineTypes, lineLookup);
                 else AddNewLineInfo(positions, LineTypes.DiagonalLine, 100 - (int)(10 * (maxGradient - minGradient)), i, lineTypes, lineLookup);
 
